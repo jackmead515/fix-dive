@@ -4,6 +4,14 @@ Automatically fix dive footage that sucks.
 
 ## About
 
+- Identify animals and objects in the footage and list them out
+- Stabilize the footage (buoyancy is hard)
+- Color correct the footage (red light is lost underwater)
+- Enhance the footage (super resolution, clarity, etc.)
+- Condense the footage into interesting parts
+- Create timeline that shows interesting parts in the footage.
+- Utilize vast.ai to run the code in parallel on a GPU
+
 I love taking footage of my scuba diving or free diving. But I absolutely suck at it. It's easy to stabilize things and get the right white balance in the air. But that all changes when you go underwater. Red light almost disappears. Stabilization is nearly impossible without a complicated rig. You can buy a more expensive camera to get auto white-balance, proper filters, more resolution and higher clarity, a red light dive light, etc, ORRRR... you could just buy compute power in a GPU and run this codebase on your crappy dive footage like me :)
 
 I have a $100 camera with a dumbass selfie stick and pretty beginner scuba dive gear. But, after training for a while and getting really precise with my buoyancy, I can capture enough raw footage to be useful.
