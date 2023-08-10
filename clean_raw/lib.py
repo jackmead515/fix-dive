@@ -5,6 +5,8 @@ import math
 import boto3
 import cv2
 
+import sync_api.src.util.video_info as video_info
+
 def organize(
     s3_file_paths=[],
     bucket_name='',
@@ -27,11 +29,14 @@ def organize(
     print(first_file)
 
 
-def create_writer(file_path, width, height, fps=30):
-    return cv2.VideoWriter(file_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
-
 if __name__ == '__main__':
+    
+    video_info = video_info.video_info('./video.mp4')
+    
+    print(video_info)
+    
+    exit()
+    
 
     bucket_name = 'jam-general-storage'
 
@@ -77,6 +82,15 @@ if __name__ == '__main__':
     )
 
     print(url)
+    
+    # download video file
+    import requests
+    request = requests.get(url, stream=True)
+    
+    with open('./video.mp4', 'wb') as f:
+        f.write(request.content)
+        
+    exit()
 
     # play video in opencv
 
