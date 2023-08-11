@@ -1,18 +1,16 @@
-import io
-
 from flask import Blueprint, request, Response
-import s3fs
 from werkzeug.utils import secure_filename
+import s3fs
+
+import config
 
 mod = Blueprint('upload', __name__)
 
-@mod.route('/upload', methods=['POST'])
+@mod.route('/api/upload', methods=['POST'])
 def upload():
     
     # get request headers
     headers = request.headers
-    
-    print(headers)
     
     # reject request if 'Content-Length' not in headers:
     if 'Content-Type' not in headers:
@@ -20,25 +18,22 @@ def upload():
 
     # retrieve file from request
     upload_file = request.files['file']
-    
     file_name = secure_filename(upload_file.filename)
-    
-    s3_file_path = f's3://jam-general-storage/{file_name}'
+    s3_file_path = f's3://{config.S3_BUCKET}/{file_name}'
     
     s3 = s3fs.S3FileSystem(
         anon=False,
-        key='AKIAQFVMQCMQKBP446UI',
-        secret='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',
+        key=config.AWS_ACCESS_KEY_ID,
+        secret=config.AWS_SECRET_ACCESS_KEY,
     )
 
-    buffer_size = 1024 * 1024 * 10
     file_length = int(headers['Content-Length'])
     bytes_read = 0
 
     with s3.open(s3_file_path, 'wb') as s3_file:
         
             while True:
-                data = upload_file.read(buffer_size)
+                data = upload_file.read(config.UPLOAD_BUFFER_SIZE)
 
                 if not data:
                     break

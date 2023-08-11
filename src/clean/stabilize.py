@@ -1,5 +1,7 @@
 import cv2
 import os
+import numba as nb
+import dask as da
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -7,6 +9,7 @@ from sklearn.neighbors import LocalOutlierFactor
 
 from util.cache import cache
 
+@nb.njit
 def rolling_mean(arr, n=30):
     pre_buffer = np.zeros(3).reshape(1, 3)
     post_buffer = np.zeros(3 * n).reshape(n, 3)
@@ -49,7 +52,7 @@ def zoom(frame, percent):
         frame,
         T,
         (width, height),
-        borderMode=cv2.BORDER_REPLICATE
+        borderMode=cv2.INTER_LANCZOS4
     )
 
 
@@ -86,7 +89,6 @@ def translate(frame, dx, dy):
     )
 
 
-@cache("stabilize.npy")
 def calculate_stabilization(capture):
     
     n_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -118,6 +120,8 @@ def calculate_stabilization(capture):
             prev_points,
             None
         )
+
+        print(next_points.shape, prev_points.shape, next_frame.shape, prev_frame.shape)
 
         idx = np.where(status == 1)[0]
         prev_points = prev_points[idx]
@@ -214,7 +218,7 @@ def update_stabilization(capture, transforms):
             frame,
             transform,
             dsize=(width, height),
-            flags=cv2.INTER_NEAREST,
+            flags=cv2.INTER_LANCZOS4,
             borderMode=cv2.BORDER_REPLICATE,
         )
         frame_stabilized = zoom(frame_stabilized, 0.04)

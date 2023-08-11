@@ -8,6 +8,7 @@ class Motion():
 
     def __call__(self, frame):
         if self.prev_frame is None:
+            self.prev_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             return None
 
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

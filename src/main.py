@@ -15,16 +15,29 @@ if __name__ == "__main__":
     # TODO - calculate the total motion before hand and identify the
     #        footage that is too shaky to be used. That way we can
     #        skip the stabilization step and save time.
-    stabilize = Stabilize(None)
+    #stabilize = Stabilize(None)
 
-    capture = cv2.VideoCapture('../media/test_original.mp4')
+    capture = cv2.VideoCapture('../clean_raw/chunk_0.mp4')
 
-    stabilize(capture)
+    print("total frames", capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    #capture.seek(0)
+    data = []
+    frame_index = 0
 
-    #motion_detector(capture)
+    while True:
+        ret, frame = capture.read()
+        if not ret:
+            break
+        
+        #motion = motion_detector(frame)
+        objects = object_detector(frame)
 
-    #capture.set(cv2.CAP_PROP_FPS, 0.1)
+        print(len(objects))
+        data.append([frame_index, len(objects)])
+        frame_index += 1
+
+    # save data to csv
+    df = pd.DataFrame(data, columns=['frame_index', 'objects'])
+    df.to_csv("objects.csv", index=False)
 
     capture.release()
