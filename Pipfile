@@ -9,5 +9,11 @@ gunicorn = "*"
 flask = "*"
 boto3 = "*"
 opencv-python = "*"
+opencv-contrib-python = "*"
 s3fs = "*"
-psycopg2 = "*"
+pyarrow = "*"
+pandas = "*"
+inotify_simple = "*"
+
+[dev-packages]
+ipykernel = "*"

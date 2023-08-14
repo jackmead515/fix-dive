@@ -4,6 +4,10 @@ from flask import Flask
 
 app = Flask(__name__)
 
+import config
+
+config.initialize()
+
 from routes import upload
 
 app.register_blueprint(upload.mod)

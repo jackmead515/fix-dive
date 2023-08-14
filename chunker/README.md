@@ -1,0 +1,1 @@
+S3_ACCESS_KEY_ID=admin S3_SECRET_ACCESS_KEY=admin123 S3_BUCKET=fix-dive-storage S3_ENDPOINT_URL=http://172.23.0.100:30140 python3 main.py

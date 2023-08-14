@@ -5,8 +5,6 @@ import math
 import boto3
 import cv2
 
-import sync_api.src.util.video_info as video_info
-
 def organize(
     s3_file_paths=[],
     bucket_name='',
