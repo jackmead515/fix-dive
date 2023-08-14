@@ -96,30 +96,12 @@
                     <mxGeometry x="570" y="680" width="80" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="38" value="Upload raw video to S3 from API" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1170" y="30" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1170" y="230" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="43" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="1530" y="160" as="sourcePoint"/>
                     </mxGeometry>
-                </mxCell>
-                <mxCell id="110" value="" style="edgeStyle=none;html=1;" parent="1" source="44" target="49" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="44" value="Read From S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1690" y="-80" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="54" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="49" target="53" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="49" value="Save to TempFile in TMPFS" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1850" y="-80" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="108" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="53" target="55" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="53" value="Run FFProbe" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2010" y="-80" width="110" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="62" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="55" target="59" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -130,29 +112,35 @@
                 <mxCell id="64" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="55" target="61" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="55" value="OpenCV Stream" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2150" y="-80" width="120" height="60" as="geometry"/>
+                <mxCell id="134" style="html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="55" target="133">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="137" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="55" target="136">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="OpenCV Stream from master playlist" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1170" y="470" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="66" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="59" target="65" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="59" value="Object Detection" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2300" y="-80" width="110" height="60" as="geometry"/>
+                    <mxGeometry x="1340" y="470" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="67" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="60" target="65" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="60" value="Motion Detection" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2300" y="-10" width="110" height="60" as="geometry"/>
+                    <mxGeometry x="1340" y="550" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="68" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="61" target="65" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="61" value="Others?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2300" y="60" width="110" height="60" as="geometry"/>
+                <mxCell id="61" value="Blur Detection" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1340" y="635" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="65" value="Stream to S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="2440" y="-80" width="110" height="60" as="geometry"/>
+                <mxCell id="65" value="Upload Parquet &lt;br&gt;to S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1500" y="470" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="69" value="Postgres" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
                     <mxGeometry x="190" y="-440" width="80" height="80" as="geometry"/>
@@ -202,40 +190,40 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="100" value="Projects&lt;br&gt;(name, username, s3_prefix)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="-890" width="170" height="60" as="geometry"/>
+                    <mxGeometry x="310" y="-880" width="170" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="101" value="RawVideos&lt;br&gt;(project_id, s3_key, video_info)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="10" y="-800" width="170" height="60" as="geometry"/>
+                    <mxGeometry x="220" y="-790" width="170" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="103" value="ProcessedVideos&lt;br&gt;(project_id, s3_key, video_info)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="190" y="-800" width="170" height="60" as="geometry"/>
+                    <mxGeometry x="400" y="-790" width="170" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="113" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="111" target="112" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="111" value="Read From S3&lt;br&gt;(http url from private minio)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1340" y="270" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1340" y="310" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="115" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="112" target="114" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="112" value="FFMPEG generate HLS playlist" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1500" y="270" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1500" y="310" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="117" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="114" target="116" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="114" value="Watch directory,&lt;br&gt;on new file created" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1655" y="270" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1655" y="310" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="116" value="Upload to S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1810" y="270" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1810" y="310" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="119" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="118" target="111" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="118" value="For All Raw Videos" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1170" y="270" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="1170" y="310" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="123" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="120" target="122" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -243,22 +231,42 @@
                 <mxCell id="120" value="List all raw video playlists" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1170" y="390" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="125" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="122" target="124" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="125" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="122" target="126" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1500" y="420" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="122" value="Concatenate into master playlist&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1340" y="390" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="127" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="124" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="1650" y="420" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="124" value="Watch directory,&lt;br&gt;on new file created" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="126" value="Upload to S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1500" y="390" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="126" value="Upload to S3" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1655" y="390" width="120" height="60" as="geometry"/>
+                <mxCell id="129" value="1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1100" y="230" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="130" value="2" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1100" y="310" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="131" value="3" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1100" y="390" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="132" value="4" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1100" y="470" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="135" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="133" target="65">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="133" value="Color Detection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1340" y="720" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="138" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="136">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1500" y="500" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="136" value="Feature Detection?" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1340" y="810" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
