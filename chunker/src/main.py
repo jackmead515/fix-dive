@@ -3,7 +3,7 @@ import uuid
 import shlex
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import tempfile
 
 import s3fs
@@ -12,6 +12,8 @@ import inotify_simple
 import config
 import util.s3_project as s3_project
 from util.dir_watcher import DirWatcher
+from models.project import Project
+
 
 def upload_chunk(s3_client, file_path, s3_path):
     logging.info(f'uploading: {s3_path}')
@@ -73,11 +75,9 @@ def verify_playlist(s3_client, playlist_path) -> bool:
     return True
 
 
-def generate_playlist(bucket_name, project_id, project_files, options):
-
-    temp_dir = f'/tmp/dive/{uuid.uuid4()}'
+def generate_playlist(project: Project, raw_file: str, playlist_path: str, options: dict):
     
-    os.makedirs(temp_dir, exist_ok=True)
+    logging.info(f'generating playlist for: {raw_file}')
     
     s3 = s3fs.S3FileSystem(
         anon=False,
@@ -93,19 +93,23 @@ def generate_playlist(bucket_name, project_id, project_files, options):
     # by checking if all the chunks are uploaded. If not, recompute
     # the playlist. This might be due to a failed upload or corruption.
     if not options.get('force_recompute'): 
-        if verify_playlist(s3, project_files['playlist_path']):
+        if verify_playlist(s3, playlist_path):
             logging.info('playlist already exists')
             return
+    
+    # Create temporary in-memory directory to store the chunks
+    temp_dir = f'/tmp/dive/{uuid.uuid4()}'    
+    os.makedirs(temp_dir, exist_ok=True)
 
     # convert s3 url to http url. Don't want a presigned url because it may expire
-    url = project_files['raw_file'].replace('s3://', config.S3_ENDPOINT_URL + '/')
-    
+    raw_http_url = s3_project.convert_to_http(raw_file, config.S3_ENDPOINT_URL.replace('http://', ''))
+
     upload_pool = ThreadPoolExecutor(max_workers=16)
     
     with DirWatcher(temp_dir, inotify_simple.flags.CLOSE_WRITE) as watcher:
         
         ffmpeg_process = subprocess.Popen(
-            get_hls_command(shlex.quote(url), temp_dir),
+            get_hls_command(shlex.quote(raw_http_url), temp_dir),
             shell=True,
         )
         
@@ -116,7 +120,7 @@ def generate_playlist(bucket_name, project_id, project_files, options):
             for event in watcher.next(timeout=1):
                 
                 file_path = os.path.join(temp_dir, event.name)
-                playlist_file = os.path.join(project_files['playlist_path'], os.path.basename(file_path))
+                playlist_file = os.path.join(playlist_path, os.path.basename(file_path))
 
                 logging.info(f'done processing: {playlist_file}')
                 
@@ -139,7 +143,7 @@ def generate_playlist(bucket_name, project_id, project_files, options):
     upload_pool.shutdown(wait=True)
 
 
-def generate_master_playlist(s3_bucket, project_id, project_files):
+def generate_master_playlist(project: Project, playlist_folders):
     
     s3 = s3fs.S3FileSystem(
         anon=False,
@@ -150,8 +154,6 @@ def generate_master_playlist(s3_bucket, project_id, project_files):
             'endpoint_url': config.S3_ENDPOINT_URL
         }
     )
-    
-    m3u8_files = [os.path.join(p['playlist_path'], 'video.m3u8') for p in project_files]
 
     m3u8_main = """#EXTM3U
 #EXT-X-VERSION:6
@@ -161,10 +163,11 @@ def generate_master_playlist(s3_bucket, project_id, project_files):
 #EXT-X-INDEPENDENT-SEGMENTS
 """
 
-    for m3u8_file in m3u8_files:
+    for playlist_folder in playlist_folders:
         
-        http_url = m3u8_file.replace('s3://', config.S3_ENDPOINT_URL + '/')
-        http_url = http_url.replace('video.m3u8', '')
+        m3u8_file = os.path.join(playlist_folder, 'video.m3u8')
+        
+        http_folder = s3_project.convert_to_http(playlist_folder, config.S3_ENDPOINT_URL.replace('http://', ''))
         
         with s3.open(m3u8_file, 'rb') as f:
             lines = [line.decode('utf-8') for line in f.readlines()]
@@ -181,39 +184,58 @@ def generate_master_playlist(s3_bucket, project_id, project_files):
                     break
                 
                 chunk_line = lines[li + 1]
-                chunk_file = os.path.join(http_url, chunk_line)
+                chunk_file = os.path.join(http_folder, chunk_line)
                 m3u8_main += ext_line + chunk_file
                 li += 2
             
             m3u8_main += '#EXT-X-ENDLIST'
-            
-    playlists_path = s3_project.get_playlist_path(s3_bucket, project_id)
-    main_playlist_path = os.path.join(playlists_path, 'main.m3u8')
+
+    logging.info(f'uploading: {project.main_playlist_path}')
     
-    logging.info(f'uploading: {main_playlist_path}')
-    
-    with s3.open(main_playlist_path, 'wb') as f:
+    with s3.open(project.main_playlist_path, 'wb') as f:
         f.write(m3u8_main.encode('utf-8'))
 
 
 if __name__ == "__main__":
-    
+
     config.initialize()
-    
+
     logging.basicConfig(level=logging.INFO)
     
+    project = Project(
+        bucket_name=config.S3_BUCKET,
+        project_id=config.PROJECT_ID,
+    )
+    
+    print(project)
+    
+    s3 = s3fs.S3FileSystem(
+        anon=False,
+        key=config.S3_ACCESS_KEY_ID,
+        secret=config.S3_SECRET_ACCESS_KEY,
+        use_ssl=False,
+        client_kwargs={
+            'endpoint_url': config.S3_ENDPOINT_URL
+        }
+    )
+
     options = {
         'force_recompute': False
     }
-    
-    project_id = '1234567890'
-    
-    project_files = s3_project.generate_project(project_id)
-    
-    for project_file in project_files:
-        logging.info(f'generating playlist: {project_file}')
-        generate_playlist(config.S3_BUCKET, project_id, project_file, options)
 
-    generate_master_playlist(config.S3_BUCKET, project_id, project_files)
+    pool = ProcessPoolExecutor(max_workers=2)
+    
+    raw_files = project.list_raw_videos_files(s3)
+    playlist_paths = project.list_playlist_folders(s3)
+    
+    for raw_file, playlist_path in zip(raw_files, playlist_paths):
+        generate_playlist(project, raw_file, playlist_path, options)
+
+    # for raw_file, playlist_path in zip(raw_files, playlist_paths):
+    #     pool.submit(generate_playlist, project, raw_file, playlist_path, options)
+
+    #pool.shutdown(wait=True)
+
+    generate_master_playlist(project, playlist_paths)
     
     
