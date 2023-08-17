@@ -4,11 +4,9 @@ S3_ENDPOINT_URL = None
 S3_ACCESS_KEY_ID = None
 S3_SECRET_ACCESS_KEY = None
 S3_BUCKET = None
-
+DASK_SCHEDULER_URL = None
 PROJECT_ID = None
-
 READ_BUFFER_SIZE = 1024 * 1024 * 10
-
 MAX_WORKERS = 1
 
 def required_env(key):
@@ -28,6 +26,8 @@ def initialize():
     S3_ENDPOINT_URL = required_env('S3_ENDPOINT_URL')
     S3_ACCESS_KEY_ID = required_env('S3_ACCESS_KEY_ID')
     S3_SECRET_ACCESS_KEY = required_env('S3_SECRET_ACCESS_KEY')
+    
+    DASK_SCHEDULER_URL = required_env('DASK_SCHEDULER_URL')
     
     PROJECT_ID = required_env('PROJECT_ID')
 

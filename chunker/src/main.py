@@ -172,7 +172,7 @@ def generate_master_playlist(project: Project, playlist_folders):
         with s3.open(m3u8_file, 'rb') as f:
             lines = [line.decode('utf-8') for line in f.readlines()]
             
-            # skip to first #EXTINF:5.750000, line
+            # skip to first #EXTINF, line
             li = 0
             while not lines[li].startswith('#EXTINF:'):
                 li += 1
@@ -223,18 +223,15 @@ if __name__ == "__main__":
         'force_recompute': False
     }
 
-    pool = ProcessPoolExecutor(max_workers=2)
+    pool = ProcessPoolExecutor(max_workers=config.MAX_WORKERS)
     
     raw_files = project.list_raw_videos_files(s3)
     playlist_paths = project.list_playlist_folders(s3)
-    
+
     for raw_file, playlist_path in zip(raw_files, playlist_paths):
-        generate_playlist(project, raw_file, playlist_path, options)
+        pool.submit(generate_playlist, project, raw_file, playlist_path, options)
 
-    # for raw_file, playlist_path in zip(raw_files, playlist_paths):
-    #     pool.submit(generate_playlist, project, raw_file, playlist_path, options)
-
-    #pool.shutdown(wait=True)
+    pool.shutdown(wait=True)
 
     generate_master_playlist(project, playlist_paths)
     

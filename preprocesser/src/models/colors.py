@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
 
-from util.profile_time import profile_time
-
 color_map = {
     'red': [
         {
@@ -68,10 +66,10 @@ class Colors():
     def __init__(self, config):
         self.config = config
 
-    @profile_time('colors')
+
     def __call__(self, frame):
         
-        data = {}
+        data = []
         
         for color in color_map.keys():
             mask = get_colored_pixels(color, frame)
@@ -88,6 +86,6 @@ class Colors():
             # get the percentage of pixels with color
             percentage = total_color / total
             
-            data[color] = percentage
+            data.append(percentage)
 
         return data
