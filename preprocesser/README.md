@@ -14,8 +14,9 @@ the dive and run other processes.
 S3_ACCESS_KEY_ID=admin \
 S3_SECRET_ACCESS_KEY=admin123 \
 S3_BUCKET=fix-dive-storage \
+PARALLEL_CHUNK_RATIO=0.05 \
 S3_ENDPOINT_URL=http://172.23.0.100:30140 \
-DASK_SCHEDULER_URL=tcp://dask-api.kubby.ninja \
+DASK_SCHEDULER_URL=tcp://172.23.0.100:32227 \
 PROJECT_ID='1234567890' \
 python3 main.py
 ```

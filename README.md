@@ -124,3 +124,4 @@ https://stackoverflow.com/questions/47483951/how-to-define-a-threshold-value-to-
 
 
 
+vastai search offers 'reliability>0.90 cpu_cores>=4 geolocation=US rentable=true verified=true' --raw

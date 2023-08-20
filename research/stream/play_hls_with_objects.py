@@ -6,8 +6,6 @@ import s3fs
 
 if __name__ == "__main__":
     
-    # need to follow this: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-overview.html
-
     #playlist_url = "http://172.23.0.100:30140/fix-dive-storage/projects/1234567890/playlists/Y2h1bmsubXA0MTUxZGI3ODQ2NjJjOTU3ZGY1NDMwNDY5YWRkMmU4NTE=/video.m3u8"
     playlist_url = 'http://minio-api.kubby.ninja/fix-dive-storage/projects/1234567890/playlists/main.m3u8'
     
@@ -47,7 +45,8 @@ if __name__ == "__main__":
         frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LANCZOS4)
         
         for row in objects.itertuples():
-            cv2.rectangle(frame, (row.x, row.y), (row.x+row.width, row.y+row.height), (0, 255, 0), 2)
+            x, y, w, h = int(row.x), int(row.y), int(row.width), int(row.height)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         
         cv2.imshow('frame', frame)
         
