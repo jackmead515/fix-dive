@@ -3,48 +3,136 @@ import uuid
 import shlex
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from urllib.parse import urlparse
+from concurrent.futures import ProcessPoolExecutor
 import tempfile
+import sys
 
 import s3fs
 import inotify_simple
 
+sys.path.append('../..')
+
+from common.project import Project
+from common.s3_project import convert_to_http
+
 import config
-import util.s3_project as s3_project
-from util.dir_watcher import DirWatcher
-from models.project import Project
 
 
-def upload_chunk(s3_client, file_path, s3_path):
-    logging.info(f'uploading: {s3_path}')
+def process_video_to_stream(http_url, output_dir):
+    """
+    ffmpeg -f flv -i "rtmp://server/live/livestream" \
+  -map 0:v:0 -map 0:a:0 -map 0:v:0 -map 0:a:0 -map 0:v:0 -map 0:a:0 \
+  -c:v libx264 -crf 22 -c:a aac -ar 44100 \
+  -filter:v:0 scale=w=480:h=360  -maxrate:v:0 600k -b:a:0 500k \
+  -filter:v:1 scale=w=640:h=480  -maxrate:v:1 1500k -b:a:1 1000k \
+  -filter:v:2 scale=w=1280:h=720 -maxrate:v:2 3000k -b:a:2 2000k \
+  -var_stream_map "v:0,a:0,name:360p v:1,a:1,name:480p v:2,a:2,name:720p" \
+  -preset fast -hls_list_size 10 -threads 0 -f hls \
+  -hls_time 3 -hls_flags independent_segments \
+  -master_pl_name "livestream.m3u8" \
+  -y "livestream-%v.m3u8"
+    """
     
-    with s3_client.open(s3_path, 'wb') as f:
-        with open(file_path, 'rb') as g:
-            while True:
-                chunk = g.read(config.READ_BUFFER_SIZE)
-                if not chunk:
-                    break
-                f.write(chunk)
-
-    os.remove(file_path)
+    """
+    ffmpeg -i input -filter_complex '[0:v]yadif,split=3[out1][out2][out3]' \
+        -map '[out1]' -s 1280x720 -acodec … -vcodec … output1 \
+        -map '[out2]' -s 640x480  -acodec … -vcodec … output2 \
+        -map '[out3]' -s 320x240  -acodec … -vcodec … output3
+    """
     
-    logging.info(f'finished uploading: {s3_path}')
-
-
-def get_hls_command(url, output_dir):
-    return f"""
+    command = f"""
     ffmpeg \
         -y \
-        -i {url} \
-        -c:v copy \
-        -f hls \
-        -hls_time 5 \
-        -hls_playlist_type vod \
-        -hls_flags independent_segments \
-        -hls_segment_type mpegts \
-        -hls_segment_filename {output_dir}/video_%d.ts \
-        {output_dir}/video.m3u8
+        -i {shlex.quote(http_url)} \
+        -threads 4 \
+        -filter_complex '[0:v]split=3[full][o2];[o2]scale=iw/2:ih/2[low]' \
+            -map '[full]' \
+                -crf 25 \
+                -f hls \
+                -hls_time 5 \
+                -hls_playlist_type vod \
+                -hls_flags independent_segments \
+                -hls_segment_type mpegts \
+                -hls_segment_filename {output_dir}/full/video_%d.ts \
+                {output_dir}/full/video.m3u8 \
+            -map '[low]' \
+                -crf 25 \
+                -f hls \
+                -hls_time 5 \
+                -hls_playlist_type vod \
+                -hls_flags independent_segments \
+                -hls_segment_type mpegts \
+                -hls_segment_filename {output_dir}/low/video_%d.ts \
+                {output_dir}/low/video.m3u8
     """
+    
+    # command = f"""
+    # ffmpeg \
+    #     -y \
+    #     -i {shlex.quote(http_url)} \
+    #     -c:v copy \
+    #     -f hls \
+    #     -hls_time 5 \
+    #     -hls_playlist_type vod \
+    #     -hls_flags independent_segments \
+    #     -hls_segment_type mpegts \
+    #     -hls_segment_filename {output_dir}/video_%d.ts \
+    #     {output_dir}/video.m3u8
+    # """
+    
+    logging.info(f'running command: {command}')
+    
+    ffmpeg_process = subprocess.Popen(
+        command,
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE
+    )
+    ffmpeg_process.wait()
+
+
+def mount_s3_bucket_command(temp_dir, s3_path):
+    command = f"""
+    echo "{config.S3_ACCESS_KEY_ID}:{config.S3_SECRET_ACCESS_KEY}" > /tmp/dive/s3credentials \
+        && chmod 600 /tmp/dive/s3credentials
+    """
+    
+    logging.info(f'running command: {command}')
+    
+    subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+    ).wait()
+        
+    command = f"""
+    s3fs \
+        {config.S3_BUCKET}:{s3_path} \
+        {temp_dir} \
+        -o passwd_file=/tmp/dive/s3credentials,use_path_request_style,url={config.S3_ENDPOINT_URL},parallel_count=16 \
+    """
+
+    logging.info(f'running command: {command}')
+    
+    subprocess.Popen(
+        command,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        shell=True,
+    ).wait()
+    
+
+def unmount_s3_bucket(temp_dir):
+    process = subprocess.Popen(
+        f"sudo umount {temp_dir}",
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        shell=True,
+    )
+    
+    process.wait()
 
 
 def verify_playlist(s3_client, playlist_path) -> bool:
@@ -98,49 +186,21 @@ def generate_playlist(project: Project, raw_file: str, playlist_path: str, optio
             return
     
     # Create temporary in-memory directory to store the chunks
-    temp_dir = f'/tmp/dive/{uuid.uuid4()}'    
+    temp_dir = f'/tmp/dive/{uuid.uuid4()}'
     os.makedirs(temp_dir, exist_ok=True)
+    
+    mount_s3_bucket_command(temp_dir, urlparse(playlist_path).path)
+    
+    os.makedirs(os.path.join(temp_dir, 'full'), exist_ok=True)
+    os.makedirs(os.path.join(temp_dir, 'low'), exist_ok=True)
 
     # convert s3 url to http url. Don't want a presigned url because it may expire
-    raw_http_url = s3_project.convert_to_http(raw_file, config.S3_ENDPOINT_URL.replace('http://', ''))
+    raw_http_url = convert_to_http(raw_file, config.S3_ENDPOINT_URL.replace('http://', ''))
 
-    upload_pool = ThreadPoolExecutor(max_workers=16)
+    # process the video to stream saving to the temp_dir
+    process_video_to_stream(raw_http_url, temp_dir)
     
-    with DirWatcher(temp_dir, inotify_simple.flags.CLOSE_WRITE) as watcher:
-        
-        ffmpeg_process = subprocess.Popen(
-            get_hls_command(shlex.quote(raw_http_url), temp_dir),
-            shell=True,
-        )
-        
-        ffmpeg_alive = lambda: ffmpeg_process.poll() is None
-        
-        while True:
-
-            for event in watcher.next(timeout=1):
-                
-                file_path = os.path.join(temp_dir, event.name)
-                playlist_file = os.path.join(playlist_path, os.path.basename(file_path))
-
-                logging.info(f'done processing: {playlist_file}')
-                
-                upload_pool.submit(upload_chunk, s3, file_path, playlist_file)
-
-            if not ffmpeg_alive():
-                break
-
-        ffmpeg_process.wait()
-
-        # TODO: if the uploading is too slow, ffmpeg may be paused
-        # in order to reduce the memory usage
-        
-        # sent STOP signal to pause ffmpeg
-        # ffmpeg_process.send_signal(signal.SIGSTOP)
-        
-        # sent CONT signal to resume ffmpeg
-        # ffmpeg_process.send_signal(signal.SIGCONT)
-    
-    upload_pool.shutdown(wait=True)
+    unmount_s3_bucket(temp_dir)
 
 
 def generate_master_playlist(project: Project, playlist_folders):
@@ -167,7 +227,7 @@ def generate_master_playlist(project: Project, playlist_folders):
         
         m3u8_file = os.path.join(playlist_folder, 'video.m3u8')
         
-        http_folder = s3_project.convert_to_http(playlist_folder, config.S3_ENDPOINT_URL.replace('http://', ''))
+        http_folder = convert_to_http(playlist_folder, config.S3_ENDPOINT_URL.replace('http://', ''))
         
         with s3.open(m3u8_file, 'rb') as f:
             lines = [line.decode('utf-8') for line in f.readlines()]
@@ -220,7 +280,7 @@ if __name__ == "__main__":
     )
 
     options = {
-        'force_recompute': False
+        'force_recompute': True
     }
 
     pool = ProcessPoolExecutor(max_workers=config.MAX_WORKERS)
@@ -229,10 +289,9 @@ if __name__ == "__main__":
     playlist_paths = project.list_playlist_folders(s3)
 
     for raw_file, playlist_path in zip(raw_files, playlist_paths):
-        pool.submit(generate_playlist, project, raw_file, playlist_path, options)
+        generate_playlist(project, raw_file, playlist_path, options)
+        #pool.submit(generate_playlist, project, raw_file, playlist_path, options)
 
-    pool.shutdown(wait=True)
+    #pool.shutdown(wait=True)
 
-    generate_master_playlist(project, playlist_paths)
-    
-    
+    #generate_master_playlist(project, playlist_paths)
