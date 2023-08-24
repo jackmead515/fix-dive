@@ -20,35 +20,19 @@ import config
 
 
 def process_video_to_stream(http_url, output_dir):
-    """
-    ffmpeg -f flv -i "rtmp://server/live/livestream" \
-  -map 0:v:0 -map 0:a:0 -map 0:v:0 -map 0:a:0 -map 0:v:0 -map 0:a:0 \
-  -c:v libx264 -crf 22 -c:a aac -ar 44100 \
-  -filter:v:0 scale=w=480:h=360  -maxrate:v:0 600k -b:a:0 500k \
-  -filter:v:1 scale=w=640:h=480  -maxrate:v:1 1500k -b:a:1 1000k \
-  -filter:v:2 scale=w=1280:h=720 -maxrate:v:2 3000k -b:a:2 2000k \
-  -var_stream_map "v:0,a:0,name:360p v:1,a:1,name:480p v:2,a:2,name:720p" \
-  -preset fast -hls_list_size 10 -threads 0 -f hls \
-  -hls_time 3 -hls_flags independent_segments \
-  -master_pl_name "livestream.m3u8" \
-  -y "livestream-%v.m3u8"
-    """
-    
-    """
-    ffmpeg -i input -filter_complex '[0:v]yadif,split=3[out1][out2][out3]' \
-        -map '[out1]' -s 1280x720 -acodec … -vcodec … output1 \
-        -map '[out2]' -s 640x480  -acodec … -vcodec … output2 \
-        -map '[out3]' -s 320x240  -acodec … -vcodec … output3
-    """
-    
     command = f"""
     ffmpeg \
         -y \
         -i {shlex.quote(http_url)} \
-        -threads 4 \
+        -x264-params opencl=true \
         -filter_complex '[0:v]split=3[full][o2];[o2]scale=iw/2:ih/2[low]' \
             -map '[full]' \
                 -crf 25 \
+                -preset fast \
+                -tune film \
+                -movflags +faststart \
+                -threads 4 \
+                -x264-params opencl=true \
                 -f hls \
                 -hls_time 5 \
                 -hls_playlist_type vod \
@@ -57,7 +41,12 @@ def process_video_to_stream(http_url, output_dir):
                 -hls_segment_filename {output_dir}/full/video_%d.ts \
                 {output_dir}/full/video.m3u8 \
             -map '[low]' \
-                -crf 25 \
+                -crf 30 \
+                -preset veryfast \
+                -tune zerolatency \
+                -movflags +faststart \
+                -threads 4 \
+                -x264-params opencl=true \
                 -f hls \
                 -hls_time 5 \
                 -hls_playlist_type vod \
@@ -122,7 +111,7 @@ def mount_s3_bucket_command(temp_dir, s3_path):
         stdout=subprocess.PIPE,
         shell=True,
     ).wait()
-    
+
 
 def unmount_s3_bucket(temp_dir):
     process = subprocess.Popen(
@@ -130,9 +119,7 @@ def unmount_s3_bucket(temp_dir):
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         shell=True,
-    )
-    
-    process.wait()
+    ).wait()
 
 
 def verify_playlist(s3_client, playlist_path) -> bool:
