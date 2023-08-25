@@ -27,3 +27,9 @@ We could render a juypter notebook into HTML that shows a
 report on the dive footage statistics that it has discovered.
 Using pretty-juypter or mercury would also help to make it
 more interactive or pretty.
+
+# Interactive feedback on the UI
+
+Using eye tracking movement, we could find the most common points where a user
+is looking and feed that into the SAM segmentation model. This will create a
+much more hands free experience.
