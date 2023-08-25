@@ -73,14 +73,12 @@ class Project:
         """
         raw_video_files = self.list_raw_videos_files(s3_client)
         
-        raw_file_info = [
-            { 'path': path, 'etag': s3_client.info(path)['ETag'][1:-1] }
+        raw_file_etags = [
+            s3_client.info(path)['ETag'][1:-1]
             for path in raw_video_files
         ]
-        
-        encode_name = lambda path, etag: base64.urlsafe_b64encode(f'{path}{etag}'.encode('utf-8')).decode('utf-8')
-        
+
         return [
-            os.path.join(self.playlists_path, encode_name(f['path'], f['etag']))
-            for f in raw_file_info
+            os.path.join(self.playlists_path, etag)
+            for etag in raw_file_etags
         ]

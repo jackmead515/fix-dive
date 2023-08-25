@@ -25,27 +25,27 @@ def process_video_to_stream(http_url, output_dir):
         -y \
         -i {shlex.quote(http_url)} \
         -x264-params opencl=true \
-        -filter_complex '[0:v]split=3[full][o2];[o2]scale=iw/2:ih/2[low]' \
-            -map '[full]' \
+        -filter_complex '[0:v]split=2[o1][o2];[o1]scale=iw/2:ih/2[view];[o2]scale=iw/2:ih/2[low]' \
+            -map '[view]' \
                 -crf 25 \
                 -preset fast \
                 -tune film \
                 -movflags +faststart \
-                -threads 4 \
+                -threads 6 \
                 -x264-params opencl=true \
                 -f hls \
                 -hls_time 5 \
                 -hls_playlist_type vod \
                 -hls_flags independent_segments \
                 -hls_segment_type mpegts \
-                -hls_segment_filename {output_dir}/full/video_%d.ts \
-                {output_dir}/full/video.m3u8 \
+                -hls_segment_filename {output_dir}/view/video_%d.ts \
+                {output_dir}/view/video.m3u8 \
             -map '[low]' \
                 -crf 30 \
                 -preset veryfast \
                 -tune zerolatency \
                 -movflags +faststart \
-                -threads 4 \
+                -threads 6 \
                 -x264-params opencl=true \
                 -f hls \
                 -hls_time 5 \
@@ -55,20 +55,6 @@ def process_video_to_stream(http_url, output_dir):
                 -hls_segment_filename {output_dir}/low/video_%d.ts \
                 {output_dir}/low/video.m3u8
     """
-    
-    # command = f"""
-    # ffmpeg \
-    #     -y \
-    #     -i {shlex.quote(http_url)} \
-    #     -c:v copy \
-    #     -f hls \
-    #     -hls_time 5 \
-    #     -hls_playlist_type vod \
-    #     -hls_flags independent_segments \
-    #     -hls_segment_type mpegts \
-    #     -hls_segment_filename {output_dir}/video_%d.ts \
-    #     {output_dir}/video.m3u8
-    # """
     
     logging.info(f'running command: {command}')
     
@@ -114,7 +100,7 @@ def mount_s3_bucket_command(temp_dir, s3_path):
 
 
 def unmount_s3_bucket(temp_dir):
-    process = subprocess.Popen(
+    subprocess.Popen(
         f"sudo umount {temp_dir}",
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
@@ -128,24 +114,28 @@ def verify_playlist(s3_client, playlist_path) -> bool:
     If the playlist file is not found, or any one the chunks inside of
     the m3u8 file is not found, return False.
     """
+    
+    variants = ['view', 'low']
+    
+    for variant in variants:
 
-    playlist_file = os.path.join(playlist_path, 'video.m3u8')
+        playlist_file = os.path.join(playlist_path, variant, 'video.m3u8')
 
-    with tempfile.NamedTemporaryFile(dir='/tmp/dive/') as f:
+        with tempfile.NamedTemporaryFile(dir='/tmp/dive/') as f:
 
-        try:
-            with s3_client.open(playlist_file, 'rb') as g:
-                f.write(g.read())
-        except FileNotFoundError:
-            return False
+            try:
+                with s3_client.open(playlist_file, 'rb') as g:
+                    f.write(g.read())
+            except FileNotFoundError:
+                return False
 
-        lines = f.read().decode('utf-8')
-        
-        for line in lines:
-            if line.endswith('.ts'):
-                chunk_file = os.path.join(playlist_path, line)
-                if not s3_client.exists(chunk_file):
-                    return False
+            lines = f.read().decode('utf-8')
+            
+            for line in lines:
+                if line.endswith('.ts'):
+                    chunk_file = os.path.join(playlist_path, line)
+                    if not s3_client.exists(chunk_file):
+                        return False
 
     return True
 
@@ -178,7 +168,7 @@ def generate_playlist(project: Project, raw_file: str, playlist_path: str, optio
     
     mount_s3_bucket_command(temp_dir, urlparse(playlist_path).path)
     
-    os.makedirs(os.path.join(temp_dir, 'full'), exist_ok=True)
+    os.makedirs(os.path.join(temp_dir, 'view'), exist_ok=True)
     os.makedirs(os.path.join(temp_dir, 'low'), exist_ok=True)
 
     # convert s3 url to http url. Don't want a presigned url because it may expire
@@ -212,7 +202,7 @@ def generate_master_playlist(project: Project, playlist_folders):
 
     for playlist_folder in playlist_folders:
         
-        m3u8_file = os.path.join(playlist_folder, 'video.m3u8')
+        m3u8_file = os.path.join(playlist_folder, 'view', 'video.m3u8')
         
         http_folder = convert_to_http(playlist_folder, config.S3_ENDPOINT_URL.replace('http://', ''))
         
@@ -267,7 +257,7 @@ if __name__ == "__main__":
     )
 
     options = {
-        'force_recompute': True
+        'force_recompute': False
     }
 
     pool = ProcessPoolExecutor(max_workers=config.MAX_WORKERS)
