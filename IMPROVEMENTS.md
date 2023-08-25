@@ -20,3 +20,10 @@ we can then further process the video to get more detailed information.
 
 The user could provide a bounding box or point to an
 animal in the video that they like or want to track.
+
+# Generate ML reports with juypter notebook
+
+We could render a juypter notebook into HTML that shows a
+report on the dive footage statistics that it has discovered.
+Using pretty-juypter or mercury would also help to make it
+more interactive or pretty.
