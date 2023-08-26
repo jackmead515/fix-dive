@@ -5,6 +5,8 @@ import os
 
 allowed_file_extensions = ['.mp4', '.avi', '.mov', '.mkv']
 
+
+
 @dataclass
 class Project:
     
@@ -23,8 +25,7 @@ class Project:
     playlists_path: str
     """Full S3 path to the playlists for this project."""
     
-    main_playlist_path: str
-    """Full S3 path to the main playlist for this project."""
+    playlist_variants: list
 
 
     def __init__(self, bucket_name, project_id):
@@ -33,7 +34,19 @@ class Project:
         self.raw_video_path = f's3://{bucket_name}/projects/{project_id}/raw_videos'
         self.features_path = f's3://{bucket_name}/projects/{project_id}/features'
         self.playlists_path = f's3://{bucket_name}/projects/{project_id}/playlists'
-        self.main_playlist_path = os.path.join(self.playlists_path, 'main.m3u8')
+        self.playlist_variants = ['low', 'view']
+
+    
+    def get_variant_playlist_path(self, variant: str):
+        return os.path.join(self.playlists_path, f'{variant}.m3u8')
+
+
+    def get_variant_playlist_segments(self, variant: str):
+        return os.path.join(self.playlists_path, f'{variant}_segments.json')
+
+
+    def get_variant_playlist_details(self, variant: str):
+        return os.path.join(self.playlists_path, f'{variant}_details.json')
 
 
     def list_raw_videos_files(self, s3_client):

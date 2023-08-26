@@ -9,6 +9,13 @@ playback and processing performance.
 Determine the progress of the chunking and processing of the video and provide
 that to the user.
 
+With processing, I can report back the progress of each Dask task via counting
+the amount of frames processed and then using the total amount of Dask tasks
+to determine overall progress.
+
+With ffmpeg, I may be able to calculate how long the chunking is taking by reading
+from the ffmpeg standard output.
+
 # Sample Video Stream to Different 5-10 Second Clips
 
 We want to sample the video stream to display to the user a 5-10 second clip of

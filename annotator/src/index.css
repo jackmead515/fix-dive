@@ -4,9 +4,11 @@ body {
   font-family: sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: black;
+  color: white;
 }
 
 #root {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 0 auto;
 }
