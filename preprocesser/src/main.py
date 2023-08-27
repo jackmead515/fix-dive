@@ -1,25 +1,19 @@
 import sys
 import logging
-import psutil
-import os
 import time
-import requests
 import json
-from concurrent.futures import ThreadPoolExecutor
 
 import s3fs
 import cv2
 import numpy as np
 import pandas as pd
-from dask import dataframe as dd
+from dask.distributed import Client as DaskClient
 import dask
 
 sys.path.append('../..')
 
 from common.project import Project
-
 import config
-import dask_util
 
 preprocess_columns = [
     'frame_index',
@@ -27,7 +21,6 @@ preprocess_columns = [
     'total_objects',
     'median_motion',
     'std_motion',
-    'features',
     'red',
     'orange',
     'yellow',
@@ -46,6 +39,12 @@ objects_columns = [
     'width',
     'height'
 ]
+
+features_columns = [
+    'frame_index',
+    'features'
+]
+
 
 @dask.delayed
 def read_stream(
@@ -92,6 +91,7 @@ def read_stream(
 
     preprocess_data = []
     objects_data = []
+    features_data = []
     
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) * resize)
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) * resize)
@@ -135,6 +135,11 @@ def read_stream(
         median_motion = np.nan if motion is None else np.median(motion)
         std_motion = np.nan if motion is None else np.std(motion)
         byte_features = np.nan if features is None else features.tobytes()
+        
+        features_data.append([
+            frame_index,
+            byte_features
+        ])
 
         preprocess_data.append([
             frame_index,
@@ -142,7 +147,6 @@ def read_stream(
             len(objects),
             median_motion,
             std_motion,
-            byte_features,
             *colors,
         ])
         
@@ -164,8 +168,9 @@ def read_stream(
     
     pre_df = pd.DataFrame(preprocess_data, columns=preprocess_columns)
     obj_df = pd.DataFrame(objects_data, columns=objects_columns)
+    fre_df = pd.DataFrame(features_data, columns=features_columns)
     
-    return pre_df, obj_df
+    return pre_df, obj_df, fre_df
 
 
 
@@ -184,7 +189,7 @@ if __name__ == "__main__":
     
     options = {
         'skip_frames': 1, # every frame
-        'feature_skip': 10, # every 10 frames
+        'feature_skip': 5, # every 10 frames
         'object_resize': 0.2, # 20% of original size
         'resize': 1.0, # 100% of original size
         'force_recompute': False,
@@ -220,7 +225,7 @@ if __name__ == "__main__":
     logging.info('starting distributed processing')
     start_processing = time.perf_counter()
     
-    dask_client = dask_util.get_dask_client()
+    dask_client = DaskClient(address=config.DASK_SCHEDULER_URL)
     
     features = []
 
@@ -241,11 +246,13 @@ if __name__ == "__main__":
     features_path = project.features_path
     preprocess_file_path = f'{features_path}/preprocess/preprocess.gzip.parquet'
     objects_file_path = f'{features_path}/objects/objects.gzip.parquet'
+    features_file_path = f'{features_path}/features/features.gzip.parquet'
 
     # combine all the features into a single dataframe
     # for writing to parquet files in s3
-    preprocess_df = pd.concat([pre_data for pre_data, _ in features])
-    objects_df = pd.concat([obj_data for _, obj_data in features])
+    preprocess_df = pd.concat([pre_data for pre_data, _, _ in features])
+    objects_df = pd.concat([obj_data for _, obj_data, _ in features])
+    features_df = pd.concat([fre_data for _, _, fre_data in features])
 
     s3_client = s3fs.S3FileSystem(
         anon=False,
@@ -266,3 +273,8 @@ if __name__ == "__main__":
     
     with s3_client.open(preprocess_file_path, 'wb') as f:
         preprocess_df.to_parquet(f, index=False, compression='gzip')
+    
+    logging.info(f'writing features to {features_file_path}')
+    
+    with s3_client.open(features_file_path, 'wb') as f:
+        features_df.to_parquet(f, index=False, compression='gzip')

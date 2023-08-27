@@ -61,6 +61,7 @@ export default class App extends PureComponent {
           <ReactPlayer
             url='http://172.23.0.100:30140/fix-dive-storage/projects/1234567890/playlists/low.m3u8'
             controls={true}
+            pip={false}
             onStart={() => console.log('onStart')}
             onPlay={() => console.log('onPlay')}
             onPause={() => console.log('onPause')}

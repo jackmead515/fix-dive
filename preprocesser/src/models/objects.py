@@ -9,7 +9,7 @@ class Objects():
 
     def __call__(self, frame):
         resize = self.config.get('resize')
-        resized = cv2.resize(frame, (0,0), fx=resize, fy=resize, interpolation = cv2.INTER_AREA)      
+        resized = cv2.resize(frame, (0,0), fx=resize, fy=resize, interpolation = cv2.INTER_AREA)     
         model = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
         model.setBaseImage(resized)
         #ss.switchToSelectiveSearchFast()
@@ -21,6 +21,6 @@ class Objects():
         rects = rects.astype('float32')
         
         # adjust bounding box to original image size
-        rects[:, 0] /= resize
+        rects[:, :] /= resize
         
         return rects
