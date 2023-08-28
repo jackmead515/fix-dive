@@ -1,9 +1,33 @@
+
+.app__container {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-gap: 20px;
+}
+
+.header__container {
+    height: 100px;
+    border: 1px solid #555;
+}
+
 .player__container {
-    height: 50vh;
+    height: 1500px;
+    max-height: 70vh;
+    border: 1px solid #555;
 }
 
 .seek__container {
     height: 100px;
-    border: 1px solid #ccc;
-    border-top: none;
+    border: 1px solid #555;
+}
+
+.seek__box {
+    height: 100%;
+    width: 100%;
+}
+
+.seek__box > svg path {
+    /* fill: none;
+    stroke: #00cc99;
+    stroke-width: 2px; */
 }
