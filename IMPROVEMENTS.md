@@ -10,6 +10,11 @@ What I should do is add a 'progress' column from 0-1 in the feature datasets
 that uses the frame_number / total_frames to calculate the progress. Then in
 the frontend I do the same thing but with the duration and current time.
 
+# Chunker Bugs
+
+- The chunker progress stalls at the last upload. Even though everything is uploaded
+- The s3fs fuse command asks for sudo password
+
 # Detect Chunk Size
 
 From the raw video, asset the size (resolution, fps, etc) of the video and
