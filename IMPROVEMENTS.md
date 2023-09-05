@@ -1,3 +1,15 @@
+# Fix the Progress / Frame Count Issue
+
+Since the framerate is not constant and changes just a little
+bit between frames, the react-player (since it only gives back progress in time)
+will not be able to calculate the correct frame number. Find out how to change
+this by either utilizing a progress column in the feature datasets or by getting
+the frame number from react-player (somehow)
+
+What I should do is add a 'progress' column from 0-1 in the feature datasets
+that uses the frame_number / total_frames to calculate the progress. Then in
+the frontend I do the same thing but with the duration and current time.
+
 # Detect Chunk Size
 
 From the raw video, asset the size (resolution, fps, etc) of the video and

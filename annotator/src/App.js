@@ -125,11 +125,15 @@ export default class App extends React.PureComponent {
       const element = document.getElementById('playerbox');
       const bbox = element.getBoundingClientRect();
       const eyePos = [data.x, data.y];
-
+      
       const frameRate = parseInt(this.state.videoDetails.streams[0].r_frame_rate.split('/')[0]);
       const frameNumber = convertProgressToFrameNumber(progress, frameRate);
 
       if (this.seekMarker) {
+
+        //let hlsPlayer = this.videoRef.current.getInternalPlayer('hls');
+        //console.log(hlsPlayer);
+
         this.seekMarker
           .attr('x', this.seekXScale(frameNumber))
           .attr('visibility', 'visible');
@@ -162,17 +166,24 @@ export default class App extends React.PureComponent {
     const height = bbox.height;
     const padding = 10;
 
+    // const duration = this.state.videoDetails.format.duration;
+    // this.seekXScale = d3.scaleLinear()
+    //   .domain([0, duration])
+    //   .range([0, width]);
+
     const xScale = d3.scaleLinear()
       .domain([0, d3.max(x)])
       .range([padding, width-padding]);
+
+    this.seekXScale = xScale;
 
     const plotLine = (x, y, color) => {
       const yScale = d3.scaleLinear()
         .domain([d3.min(y), d3.max(y)])
         .range([height-padding, padding]);
 
-      const smooth_y = movingAverage(y, 5);
-      const data = x.map((d, i) => [d, smooth_y[i] ? smooth_y[i] : 0]);
+      const smoothY = movingAverage(y, 5);
+      const data = x.map((d, i) => [d, smoothY[i] ? smoothY[i] : 0]);
 
       svg
         .append("path")
@@ -192,17 +203,15 @@ export default class App extends React.PureComponent {
       .attr('width', width)
       .attr('height', height);
 
-    plotLine(x, by, '#0099ff');
-    plotLine(x, my, '#ff9900');
-    plotLine(x, oy, '#00ff00');
+    plotLine(x, by, '#0099ff'); // blue
+    plotLine(x, my, '#ff9900'); // orange
+    plotLine(x, oy, '#00ff00'); // green
 
     this.seekMarker = svg.append('rect')
       .attr('width', 1)
       .attr('height', height)
       .attr('fill', '#ffff')
       .attr('visibility', 'hidden');
-
-    this.seekXScale = xScale;
   }
 
   renderVideoPlayer() {

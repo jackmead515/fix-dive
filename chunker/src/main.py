@@ -36,6 +36,7 @@ def process_video_to_stream(http_url, output_dir):
                 -movflags +faststart \
                 -threads 6 \
                 -x264-params opencl=true \
+                -r 60 \
                 -f hls \
                 -hls_time 5 \
                 -hls_playlist_type vod \
@@ -50,6 +51,7 @@ def process_video_to_stream(http_url, output_dir):
                 -movflags +faststart \
                 -threads 6 \
                 -x264-params opencl=true \
+                -r 60 \
                 -f hls \
                 -hls_time 5 \
                 -hls_playlist_type vod \

@@ -192,7 +192,7 @@ if __name__ == "__main__":
         'feature_skip': 5, # every 10 frames
         'object_resize': 0.2, # 20% of original size
         'resize': 1.0, # 100% of original size
-        'force_recompute': False,
+        'force_recompute': True,
     }
     
     s3_client = s3fs.S3FileSystem(
