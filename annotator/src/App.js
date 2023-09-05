@@ -118,6 +118,7 @@ export default class App extends React.PureComponent {
     }
 
     const isFocused = document.hasFocus();
+    
     const progress = this.videoRef.current.getCurrentTime();
 
     // browser tab is focused and video is playing
@@ -126,16 +127,18 @@ export default class App extends React.PureComponent {
       const bbox = element.getBoundingClientRect();
       const eyePos = [data.x, data.y];
       
-      const frameRate = parseInt(this.state.videoDetails.streams[0].r_frame_rate.split('/')[0]);
-      const frameNumber = convertProgressToFrameNumber(progress, frameRate);
+      //const frameRate = parseInt(this.state.videoDetails.streams[0].r_frame_rate.split('/')[0]);
+      //const frameNumber = convertProgressToFrameNumber(progress, frameRate);
+
+      const duration = this.videoRef.current.getDuration();
+      const progressPrecentage = progress / duration;
 
       if (this.seekMarker) {
-
         //let hlsPlayer = this.videoRef.current.getInternalPlayer('hls');
         //console.log(hlsPlayer);
 
         this.seekMarker
-          .attr('x', this.seekXScale(frameNumber))
+          .attr('x', this.seekXScale(progressPrecentage))
           .attr('visibility', 'visible');
       }
 
@@ -146,7 +149,7 @@ export default class App extends React.PureComponent {
         eyePos[0] = (eyePos[0] - bbox.x) / bbox.width;
         eyePos[1] = (eyePos[1] - bbox.y) / bbox.height;
 
-        this.eyeTrackingData += `${frameNumber},${progress},${eyePos[0]},${eyePos[1]}\n`;
+        this.eyeTrackingData += `${progressPrecentage},${eyePos[0]},${eyePos[1]}\n`;
       }
     }
 
@@ -167,15 +170,13 @@ export default class App extends React.PureComponent {
     const padding = 10;
 
     // const duration = this.state.videoDetails.format.duration;
-    // this.seekXScale = d3.scaleLinear()
-    //   .domain([0, duration])
-    //   .range([0, width]);
+    this.seekXScale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([padding, width-padding]);
 
     const xScale = d3.scaleLinear()
       .domain([0, d3.max(x)])
       .range([padding, width-padding]);
-
-    this.seekXScale = xScale;
 
     const plotLine = (x, y, color) => {
       const yScale = d3.scaleLinear()
@@ -210,7 +211,7 @@ export default class App extends React.PureComponent {
     this.seekMarker = svg.append('rect')
       .attr('width', 1)
       .attr('height', height)
-      .attr('fill', '#ffff')
+      .attr('fill', '#e3e3e3')
       .attr('visibility', 'hidden');
   }
 

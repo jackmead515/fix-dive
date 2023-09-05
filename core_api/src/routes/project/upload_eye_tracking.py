@@ -10,7 +10,6 @@ mod = Blueprint('upload_project_eye_project', __name__)
 def upload(project_id):
     
     df = pl.read_csv(source=request.data, has_header=True, separator=',', dtypes={
-        'frame_index': pl.Int64,
         'progress': pl.Float64,
         'eye_x': pl.Float64,
         'eye_y': pl.Float64,
