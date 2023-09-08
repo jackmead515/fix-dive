@@ -58,7 +58,7 @@ export default class App extends React.PureComponent {
     this.videoProgress = 0;
     this.seekMarker = undefined;
     this.seekXScale = undefined;
-    this.eyeTrackingData = "frame_index,progress,eye_x,eye_y\n";
+    this.eyeTrackingData = "progress,elapsed,eye_x,eye_y\n";
     this.onGazerUpdated = this.onGazerUpdated.bind(this);
   }
 
@@ -149,7 +149,7 @@ export default class App extends React.PureComponent {
         eyePos[0] = (eyePos[0] - bbox.x) / bbox.width;
         eyePos[1] = (eyePos[1] - bbox.y) / bbox.height;
 
-        this.eyeTrackingData += `${progressPrecentage},${eyePos[0]},${eyePos[1]}\n`;
+        this.eyeTrackingData += `${progressPrecentage},${progress},${eyePos[0]},${eyePos[1]}\n`;
       }
     }
 

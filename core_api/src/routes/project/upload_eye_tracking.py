@@ -11,6 +11,7 @@ def upload(project_id):
     
     df = pl.read_csv(source=request.data, has_header=True, separator=',', dtypes={
         'progress': pl.Float64,
+        'elapsed_time': pl.Float64,
         'eye_x': pl.Float64,
         'eye_y': pl.Float64,
     })
